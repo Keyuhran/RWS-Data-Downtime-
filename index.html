@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Upload Grid · Professional</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-alt: #f2f4f8;
+      --text: #0f172a;
+      --muted: #5b657a;
+      --border: #e5e8ef;
+      --accent: #2563eb;
+      --accent-600: #1d4ed8;
+      --danger: #d92d20;
+      --radius: 14px;
+      --gap: 16px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 8px 24px rgba(15,23,42,.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 85% -10%, rgba(37,99,235,.08), transparent 55%),
+        linear-gradient(#fff, var(--bg));
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100svh;
+      font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .container { width: min(1200px, 94vw); margin: 28px auto 24px; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .title { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .2px; }
+    .subtle { color: var(--muted); font-size: 13px; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(240px, 1fr));
+      gap: var(--gap);
+      margin: 10px 0 22px;
+      animation: fadeUp .5s ease both;
+    }
+
+    .field { display: grid; gap: 8px; }
+    .label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+    .input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      transition: border-color .15s ease, box-shadow .2s ease, transform .12s ease;
+    }
+    .input:focus, select:focus {
+      border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    .spin-input { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+    .spin-btn {
+      width: 36px; height: 36px; display: grid; place-items: center;
+      border-radius: 10px; background: var(--panel); border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm); cursor: pointer;
+      transition: transform .12s ease, border-color .15s ease, box-shadow .2s ease; user-select: none;
+    }
+    .spin-btn:hover { transform: translateY(-1px); border-color: #d6dae3; }
+    .spin-btn:active { transform: translateY(0); }
+
+    .grid-wrap { display: grid; place-items: center; margin: 12px auto 18px; }
+    .grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-rows: 1fr;
+      gap: var(--gap);
+    }
+
+    .cell {
+      display: grid; grid-template-rows: auto 1fr; gap: 10px; padding: 14px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease;
+      opacity: 0; animation: cardIn .5s ease both; min-height: 170px;
+    }
+    .cell:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: #dfe3ea; }
+    .cell h3 { margin: 0; font-size: 14px; font-weight: 700; color: #1f2937; }
+
+    .uploader {
+      display: grid; align-content: center; justify-items: center; gap: 10px;
+      border: 1px dashed #d7dbe4; border-radius: 12px; background: var(--panel-alt);
+      min-height: 120px; padding: 16px;
+    }
+
+    .btn {
+      display: inline-grid; place-items: center; grid-auto-flow: column; gap: 8px;
+      padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); font-weight: 600; cursor: pointer;
+      transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: #d6dae3; }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary { background: linear-gradient(#2563eb, #1d4ed8); color: #fff; border-color: transparent; }
+    .btn-primary:hover { box-shadow: 0 10px 28px rgba(37,99,235,.25); }
+    .btn-outline { background: #fff; }
+    .btn-danger { background: linear-gradient(#ef4444, #dc2626); color: #fff; border-color: transparent; }
+
+    .filename { font-size: 12px; color: var(--muted); text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .actions {
+      display: flex; justify-content: flex-end; gap: 12px; margin: 8px 0 24px;
+      position: sticky; bottom: 0; z-index: 1;
+      background: linear-gradient(to top, rgba(245,247,251,1), rgba(245,247,251,.8));
+      -webkit-backdrop-filter: saturate(140%) blur(4px);
+      backdrop-filter: saturate(140%) blur(4px);
+      padding-top: 8px;
+    }
+
+    .statusbar {
+      margin-top: 8px; font-size: 13px; color: var(--muted);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .grid .cell:nth-child(1) { animation-delay: 40ms }
+    .grid .cell:nth-child(2) { animation-delay: 80ms }
+    .grid .cell:nth-child(3) { animation-delay: 120ms }
+    .grid .cell:nth-child(4) { animation-delay: 160ms }
+    .grid .cell:nth-child(5) { animation-delay: 200ms }
+    .grid .cell:nth-child(6) { animation-delay: 240ms }
+    .grid .cell:nth-child(7) { animation-delay: 280ms }
+    .grid .cell:nth-child(8) { animation-delay: 320ms }
+    .grid .cell:nth-child(9) { animation-delay: 360ms }
+    .grid .cell:nth-child(10) { animation-delay: 400ms }
+    .grid .cell:nth-child(11) { animation-delay: 440ms }
+    .grid .cell:nth-child(12) { animation-delay: 480ms }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(8px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
+
+    @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 780px)  { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 520px)  { .grid { grid-template-columns: 1fr; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: 0ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="header">
+      <h1 class="title">Upload Grid</h1>
+      <div class="subtle">4×3 grid • 12 slots</div>
+    </div>
+
+    <form id="uploadForm" autocomplete="off">
+      <section class="controls" aria-label="Selectors">
+        <div class="field">
+          <label class="label" for="month">Month</label>
+          <select id="month" name="month" aria-label="Month selector">
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="days">Number of Days</label>
+          <div class="spin-input">
+            <button type="button" class="spin-btn" id="daysDec" aria-label="Decrease days"><span aria-hidden="true">–</span></button>
+            <input id="days" class="input" name="days" type="number" inputmode="numeric" min="1" max="31" step="1" value="7" aria-label="Days spinner" />
+            <button type="button" class="spin-btn" id="daysInc" aria-label="Increase days"><span aria-hidden="true">+</span></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-wrap" aria-label="Upload grid">
+        <div class="grid" role="grid" aria-rowcount="3" aria-colcount="4"></div>
+      </section>
+
+      <section class="actions">
+        <button type="button" id="clearAll" class="btn" aria-label="Clear all uploads">Clear</button>
+        <button type="submit" id="submitBtn" class="btn btn-primary" aria-label="Submit form">Submit</button>
+      </section>
+
+      <div class="statusbar" id="statusbar" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <script>
+    // ========================
+    // Config
+    // ========================
+    const BACKEND = 'http://localhost:8000'; // change if needed
+
+    // ========================
+    // Render 12 cells (4×3)
+    // Names use file_1..file_12 (FastAPI-friendly).
+    // IDs kept as file-1..file-12 for label hookup.
+    // ========================
+    (function mountGrid() {
+      const grid = document.querySelector('.grid');
+      if (!grid) return;
+      const html = [...Array(12)].map((_, i) => {
+        const idx = i + 1;
+        return `
+          <div class="cell" role="gridcell" aria-label="Slot ${idx}">
+            <h3>Slot ${idx}${idx <= 4 ? ' • required for processing' : ''}</h3>
+            <div class="uploader">
+              <input class="visually-hidden" id="file-${idx}" name="file_${idx}" type="file" accept=".xls,.xlsx,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" ${idx <= 4 ? '' : ''} />
+              <label class="btn btn-outline" for="file-${idx}" role="button">Upload File</label>
+              <div class="filename" id="file-${idx}-name">No file selected</div>
+            </div>
+          </div>`;
+      }).join('');
+      grid.innerHTML = html;
+      bindFileInputs();
+    })();
+
+    // Preselect current month
+    (function initMonthSelect() {
+      const sel = document.getElementById('month');
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      sel.value = month;
+    })();
+
+    // Update filename labels
+    function bindFileInputs() {
+      const fileInputs = Array.from(document.querySelectorAll('input[type="file"]'));
+      fileInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+          const nameEl = document.getElementById(input.id + '-name');
+          const files = input.files;
+          if (!files || files.length === 0) {
+            nameEl.textContent = 'No file selected';
+          } else if (files.length === 1) {
+            nameEl.textContent = files[0].name;
+          } else {
+            nameEl.textContent = `${files.length} files selected`;
+          }
+        });
+      });
+      return fileInputs;
+    }
+
+    // Clear all
+    document.getElementById('clearAll').addEventListener('click', () => {
+      const inputs = document.querySelectorAll('input[type="file"]');
+      inputs.forEach((input) => {
+        input.value = '';
+        const nameEl = document.getElementById(input.id + '-name');
+        if (nameEl) nameEl.textContent = 'No file selected';
+      });
+      setStatus('Cleared all selections.');
+    });
+
+    // Spinner logic (fixed: remove undefined spin(); dispatch input events instead)
+    (function daysSpinner() {
+      const input = document.getElementById('days');
+      const inc = document.getElementById('daysInc');
+      const dec = document.getElementById('daysDec');
+      const clamp = (v) => {
+        const min = parseInt(input.min, 10);
+        const max = parseInt(input.max, 10);
+        return Math.max(min, Math.min(max, v));
+      };
+      const nudge = () => {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      inc.addEventListener('click', () => { input.value = clamp((+input.value || 1) + 1); nudge(); });
+      dec.addEventListener('click', () => { input.value = clamp((+input.value || 1) - 1); nudge(); });
+    })();
+
+    // Status helper
+    function setStatus(msg, type = 'info') {
+      const bar = document.getElementById('statusbar');
+      bar.textContent = msg || '';
+      bar.style.color = type === 'error' ? 'var(--danger)' : 'var(--muted)';
+    }
+
+    // Submit to FastAPI
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const prev = btn.textContent;
+
+      // Basic validation: first 4 slots should have a file (your processing uses df1..df4)
+      const mustHave = [1,2,3,4];
+      for (const i of mustHave) {
+        const el = document.getElementById(`file-${i}`);
+        if (!el.files || el.files.length === 0) {
+          setStatus(`Please provide files for slots 1–4. Slot ${i} is missing.`, 'error');
+          return;
+        }
+      }
+
+      const fd = new FormData(e.currentTarget);
+
+      try {
+        btn.textContent = 'Uploading…';
+        btn.disabled = true;
+        setStatus('Uploading files and running processing…');
+
+        const res = await fetch(`${BACKEND}/api/upload`, {
+          method: 'POST',
+          body: fd,
+        });
+
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.ok) {
+          const msg = (json && json.message) || `Upload failed with status ${res.status}`;
+          setStatus(msg, 'error');
+        } else {
+          setStatus('Processed successfully.');
+          if (json.excel_url) {
+            // Trigger download
+            const a = document.createElement('a');
+            a.href = json.excel_url;
+            a.download = 'highlighted.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } else {
+            setStatus('Upload OK, but Excel not available. Check backend logs.', 'error');
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus('Network error. Is the backend running?', 'error');
+      } finally {
+        btn.textContent = prev;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
